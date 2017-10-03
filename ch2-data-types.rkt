@@ -89,12 +89,13 @@
 (check-expect (symbol? 42)   #f)
 
 ;; racket/base must differ from
-;; http://ds26gte.github.io/tyscheme/index-Z-H-4.html then.
+;; http://ds26gte.github.io/tyscheme/index-Z-H-4.html then, where the
+;; answer is #t. Is Racket case-sensitive?
 (check-expect (eqv? 'calorie 'Calorie) #f)
 
 (define xyz 9)
-;;(check-expect (eqv? xyz 9) #t)
-;; (check-expect xyz 9)
+(check-expect (eqv? xyz 9) #t)
+(check-expect xyz 9)
 ;; (set! xyz #\c)
 ;; (check-expect (eqv? xyz #\c) #t)
 
@@ -127,6 +128,7 @@
 (check-expect (car x) 1)
 (check-expect (cdr x) #t)
 
+;; not available in #lang racket/base?
 ;; (set-car! x 2)
 ;; (set-cdr! x #f)
 ;; (check-expect x '(2 . #f))
@@ -141,5 +143,45 @@
 (check-expect (cons 1 (cons 2 (cons 3 (cons 4 5)))) '(1 2 3 4 . 5))
 (check-expect (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 '()))))) '(1 2 3 4 5))
 (check-expect (list 1 2 3 4 5) '(1 2 3 4 5))
+(check-expect '(1 . (2 . (3 . (4 . 5)))) '(1 2 3 4 . 5))
+
+;; duplicate definition for identifier
+(define y2 (list 1 2 3 4))
+
+(check-expect (list-ref y2 0) 1)
+(check-expect (list-ref y2 3) 4)
+
+;; `list-tail` returns the _tail_ of the list starting from the given
+;; index.
+(check-expect (list-tail y2 1) (list 2 3 4))
+(check-expect (list-tail y2 3) (list 4))
+
+(check-expect (pair? '(1 . 2)) #t)
+;; Why not #f?
+(check-expect (pair? '(1 2))   #t)
+(check-expect (pair? '())      #f)
+(check-expect (list? '())      #t)
+(check-expect (null? '())      #t)
+(check-expect (list? '(1 2))   #t)
+(check-expect (list? '(1 . 2)) #f) ;; expicitly-dotted lists aren't pairs
+(check-expect (null? '(1 2))   #f)
+(check-expect (null? '(1 . 2)) #f)
+
+;; 2.2.4 Conversions between data types
+
+(check-expect (char->integer #\d)    100)
+(check-expect (integer->char 50)     #\2)
+(check-expect (string->list "hello") (list #\h #\e #\l #\l #\o))
+
+;; Other conversion procedures in the same vein are `list->string`,
+;; `vector->list`, and `list->vector`.
+
+(check-expect (number->string 16) "16")
+(check-expect (string->number "16") 16)
+(check-expect (string->number "Am I a hot number?") #f)
+(check-expect (string->number "16" 8) 14)
+
+(check-expect (symbol->string 'symbol) "symbol")
+(check-expect (string->symbol "string") 'string)
 
 (test)
